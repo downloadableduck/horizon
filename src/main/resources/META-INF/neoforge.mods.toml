@@ -1,0 +1,35 @@
+modLoader = "javafml"
+loaderVersion = "[2,)"
+#issueTrackerURL = ""
+license = "MIT"
+
+[[mods]]
+#we use the original mod id here because it needs to be compatible with packs that use the nuit format
+modId = "nuit"
+version = "1.0.0"
+displayName = "Horizon"
+authors = "AMereBagatelle, FlashyReese, updated by downloadableduck"
+description = '''
+Adds custom skybox support to Minecraft
+'''
+logoFile = "../assets/horizon/horizon_logo.png"
+
+[[dependencies.nuit]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.95, 21.9.20)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.nuit]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.5, 1.21.11)"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "horizon-common.mixins.json"
+
+[[accessTransformers]]
+file="META-INF/accesstransformer.cfg"

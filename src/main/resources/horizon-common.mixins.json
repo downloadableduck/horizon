@@ -1,0 +1,18 @@
+{
+  "priority": 500,
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.jeff.horizon.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "refmap": "horizon-refmap.json",
+  "client": [
+    "MixinGlCommandEncoder",
+    "MixinFogRenderer",
+    "MixinAirBasedFogEnvironment",
+    "MixinLevelRenderer",
+    "RenderPipelinesAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
