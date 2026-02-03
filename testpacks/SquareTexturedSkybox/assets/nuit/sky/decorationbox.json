@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "type": "decorations",
+  "properties": {
+    "layer": 1,
+    "fade": {
+      "alwaysOn": true,
+      "keyFrames": {
+        "0": 0,
+        "12000": 1.0,
+        "23999": 0
+      }
+    },
+    "rotation": {
+      "mapping": {
+        "0": [
+          0,
+          0,
+          90
+        ]
+      },
+      "axis": {
+        "0": [
+          0,
+          0,
+          0
+        ]
+      }
+    }
+  },
+  "decorations": {
+    "showSun": true
+  }
+}
