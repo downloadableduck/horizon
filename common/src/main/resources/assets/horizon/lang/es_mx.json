@@ -1,8 +1,0 @@
-{
-  "category.nuit": "Horizonte",
-  "key.nuit.toggle": "Alternar Horizonte",
-  "nuit.message.enabled": "¡Horizonte habilitado!",
-  "nuit.message.disabled": "¡Horizonte deshabilitado!",
-  "key.nuit.toggle.debug_hud": "Alternar HUD de depuración",
-  "key.nuit.toggle.debug_screen": "Alternar pantalla de depuración"
-}
