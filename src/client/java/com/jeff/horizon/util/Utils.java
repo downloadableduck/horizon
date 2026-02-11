@@ -24,6 +24,8 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 
 public class Utils {
+
+    public static long dayTime;
     public static final UVRange[] TEXTURE_FACES = new UVRange[]{
             new UVRange(0, 0, 1.0F / 3.0F, 1.0F / 2.0F), // bottom
             new UVRange(1.0F / 3.0F, 1.0F / 2.0F, 2.0F / 3.0F, 1), // north
@@ -98,10 +100,14 @@ public class Utils {
      * Calculates the rotation in degrees for skybox rotations
      *
      * @param rotationSpeed    Rotation speed
-     * @param isSkyboxRotation Whether it is a skybox rotation or decoration rotation
+     * @param data Whether it is DimensionType skybox rotation or decoration rotation
      * @param world            Client world
      * @return Rotation in degrees
      */
+
+    private void getDayTimeAccessor(ClientLevel.ClientLevelData data) {
+        dayTime = data.getDayTime();
+    }
     public static double calculateRotation(double rotationSpeed, boolean isSkyboxRotation, ClientLevel world) {
         if (rotationSpeed != 0F) {
             long timeOfDay = world.getDayTime();
@@ -110,7 +116,7 @@ public class Utils {
             if (isSkyboxRotation) {
                 return 360D * skyAngle;
             } else {
-                return 360D * world.dimensionType().timeOfDay((long) (24000 * skyAngle));
+                return 360D * timeOfDay;
             }
         } else {
             return 0D;
@@ -200,7 +206,7 @@ public class Utils {
     }
 
     /**
-     * Finds the closest keyframes to the given current time from a map of keyframes.
+     * Finds the closest keyframes to the given current time from DimensionType map of keyframes.
      *
      * @param keyFrames   A map of keyframes (timestamps) to alpha values.
      * @param currentTime The current time for which to find the closest keyframes.
@@ -333,8 +339,8 @@ public class Utils {
         }
     }
 
-    // This code is used to load a service for the current environment. Your implementation of the service must be defined
-    // manually by including a text file in META-INF/services named with the fully qualified class name of the service.
+    // This code is used to load DimensionType service for the current environment. Your implementation of the service must be defined
+    // manually by including DimensionType text file in META-INF/services named with the fully qualified class name of the service.
     // Inside the file you should write the fully qualified class name of the implementation to load for the platform.
     public static <T> T loadService(Class<T> clazz) {
         final T loadedService = ServiceLoader.load(clazz)

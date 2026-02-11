@@ -9,20 +9,34 @@ import com.jeff.horizon.util.Utils;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.fog.environment.AirBasedFogEnvironment;
+import net.minecraft.client.renderer.fog.environment.AtmosphericFogEnvironment;
+import net.minecraft.client.renderer.state.SkyRenderState;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(AirBasedFogEnvironment.class)
+import java.io.ObjectInputStream;
+
+@Mixin(AtmosphericFogEnvironment.class)
 public class MixinAirBasedFogEnvironment {
-    @Redirect(method = "getBaseColor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientLevel;getTimeOfDay(F)F"))
+
+    @Unique
+    public float nuit$sunAngle;
+
+    @Unique
+    public void nuit$getSunAngle(SkyRenderState skyRenderState) {
+        nuit$sunAngle = skyRenderState.sunAngle;
+    }
+    @Redirect(method = "getBaseColor", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/state/SkyRenderState;sunAngle:F", args = "ldc=", opcode = Opcodes.GETFIELD))
     private float nuit$redirectSkyAngle(ClientLevel instance, float v) {
         if (SkyboxManager.getInstance().isEnabled() && SkyboxManager.getInstance().getActiveSkyboxes().stream().anyMatch(skybox -> skybox instanceof DecorationBox decorBox && decorBox.getProperties().rotation().skyboxRotation())) {
             return Mth.positiveModulo(instance.getDayTime() / 24000F + 0.75F, 1);
         } else {
-            return instance.getTimeOfDay(v);
+            return instance.getDayTime();
         }
     }
 
@@ -31,7 +45,7 @@ public class MixinAirBasedFogEnvironment {
         if (SkyboxManager.getInstance().isEnabled() && SkyboxManager.getInstance().getActiveSkyboxes().stream().anyMatch(skybox -> skybox instanceof DecorationBox decorBox && decorBox.getProperties().rotation().skyboxRotation())) {
             return (float) Math.toRadians(Mth.positiveModulo(instance.getDayTime() / 24000F + 0.75F, 1));
         } else {
-            return instance.getSunAngle(v);
+            return nuit$sunAngle;
         }
     }
 

@@ -1,21 +1,34 @@
 package com.jeff.horizon.util;
 
 import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.systems.ScissorState;
+import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.function.Consumer;
 
+import static com.mojang.blaze3d.systems.RenderSystem.assertOnRenderThread;
+
 public class BufferUploader {
+
+    static GpuTextureView[] shaderTextures = new GpuTextureView[12];
+
+    public static GpuTextureView getShaderTexture(int i) {
+        assertOnRenderThread();
+        return i >= 0 && i < shaderTextures.length ? shaderTextures[i] : null;
+    }
+
     public static void drawWithShader(RenderPipeline pipeline, MeshData meshData, Consumer<RenderPass> renderPassConsumer) {
         try {
             GpuBuffer gpuBuffer = pipeline.getVertexFormat().uploadImmediateVertexBuffer(meshData.vertexBuffer());
@@ -44,9 +57,11 @@ public class BufferUploader {
                 }
 
                 for (int i = 0; i < 12; ++i) {
-                    GpuTextureView gpuTextureView3 = RenderSystem.getShaderTexture(i);
+                    assert RenderSystem.getShaderFog() != null;
+                    GpuTextureView gpuTextureView3 = getShaderTexture(i);
+                    GpuSampler gpuSampler = Minecraft.getInstance().getTextureManager().getTexture(MissingTextureAtlasSprite.getLocation()).getSampler();
                     if (gpuTextureView3 != null) {
-                        renderPass.bindSampler("Sampler" + i, gpuTextureView3);
+                        renderPass.bindTexture("Sampler" + i, gpuTextureView3, gpuSampler);
                     }
                 }
 

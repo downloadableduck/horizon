@@ -19,7 +19,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SkyRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.joml.Matrix4fStack;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL46C;
@@ -30,7 +30,7 @@ import java.util.function.Function;
 public abstract class TexturedSkybox extends AbstractSkybox implements TextureRegistrar {
     public static final Function<BlendFunction, RenderPipeline> TEXTURED_SKYBOX_PIPELINE_CONSUMER = (blendFunction) -> {
         RenderPipeline.Builder builder = RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET);
-        builder.withLocation(ResourceLocation.tryBuild(HorizonClient.MOD_ID, "pipeline/textured_skybox"));
+        builder.withLocation(Identifier.tryBuild(HorizonClient.MOD_ID, "pipeline/textured_skybox"));
         builder.withVertexShader("core/position_tex");
         builder.withFragmentShader("core/position_tex");
         builder.withDepthWrite(false);

@@ -1,9 +1,9 @@
 package com.jeff.horizon.skybox;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 
 public interface TextureRegistrar {
-    List<ResourceLocation> getTexturesToRegister();
+    List<Identifier> getTexturesToRegister();
 }

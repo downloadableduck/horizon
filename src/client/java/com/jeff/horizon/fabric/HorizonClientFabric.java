@@ -16,7 +16,7 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,8 +38,8 @@ public class HorizonClientFabric implements ClientModInitializer {
             }
 
             @Override
-            public ResourceLocation getFabricId() {
-                return ResourceLocation.fromNamespaceAndPath(HorizonClient.MOD_ID, "skybox_reader");
+            public Identifier getFabricId() {
+                return Identifier.fromNamespaceAndPath(HorizonClient.MOD_ID, "skybox_reader");
             }
         });
 

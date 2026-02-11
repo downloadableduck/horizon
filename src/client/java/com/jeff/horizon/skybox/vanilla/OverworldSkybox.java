@@ -16,15 +16,24 @@ import com.jeff.horizon.skybox.decorations.DecorationBox;
 import com.jeff.horizon.util.BufferUploader;
 import com.jeff.horizon.util.DynamicTransformsBuilder;
 import net.minecraft.client.Camera;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SkyRenderer;
+import net.minecraft.client.renderer.state.SkyRenderState;
+import net.minecraft.data.BlockFamily;
+import net.minecraft.data.worldgen.biome.OverworldBiomes;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
+import net.minecraft.world.attribute.EnvironmentAttributes;
+import net.minecraft.world.level.Level;
 import org.joml.Matrix4fStack;
 
 public class OverworldSkybox extends AbstractSkybox {
+
+    public float sunAngle;
+    int color;
     public static Codec<OverworldSkybox> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Properties.CODEC.optionalFieldOf("properties", Properties.of()).forGetter(AbstractSkybox::getProperties),
             Conditions.CODEC.optionalFieldOf("conditions", Conditions.of()).forGetter(AbstractSkybox::getConditions)
@@ -34,30 +43,32 @@ public class OverworldSkybox extends AbstractSkybox {
         super(properties, conditions);
     }
 
+    public void skyRenderStateAccessor(SkyRenderState skyRenderState) {
+        sunAngle = skyRenderState.sunAngle;
+        color = skyRenderState.sunriseAndSunsetColor;
+    }
+
     @Override
     public void render(SkyRenderer skyRendererAccessor, Matrix4fStack matrix4fStack, float tickDelta, Camera camera, GpuBufferSlice fogParameters, MultiBufferSource.BufferSource bufferSource) {
         RenderSystem.setShaderFog(fogParameters);
 
-        ClientLevel level = (ClientLevel) camera.getEntity().level();
-        float sunAngle = level.getSunAngle(tickDelta);
-        float timeOfDay = level.getTimeOfDay(tickDelta);
-        int sunriseOrSunsetColor = level.effects().getSunriseOrSunsetColor(timeOfDay);
-        int skyColor = level.getSkyColor(camera.getPosition(), tickDelta);
+        ClientLevel level = (ClientLevel) camera.entity().level();
+        float timeOfDay = DeltaTracker.ONE.getGameTimeDeltaTicks();
+        int sunriseOrSunsetColor = EnvironmentAttributes.SUNRISE_SUNSET_COLOR.defaultValue();
+        int skyColor = OverworldBiomes.calculateSkyColor(tickDelta);
 
         // Light Sky
-        ((SkyRenderer) skyRendererAccessor).renderSkyDisc(ARGB.redFloat(skyColor), ARGB.greenFloat(skyColor), ARGB.blueFloat(skyColor));
-        if (level.effects().isSunriseOrSunset(timeOfDay)) {
-            if (HorizonApi.getInstance().getActiveSkyboxes().stream().anyMatch(skybox -> skybox instanceof DecorationBox decorationBox && decorationBox.getProperties().rotation().skyboxRotation())) {
-                sunAngle = Mth.positiveModulo(level.getDayTime() / 24000F + 0.75F, 1);
-            }
-
-            this.renderSunriseAndSunset(matrix4fStack, sunAngle, sunriseOrSunsetColor);
+        skyRendererAccessor.renderSkyDisc((int) ((int) ARGB.redFloat(skyColor) + ARGB.greenFloat(skyColor) + ARGB.blueFloat(skyColor)));
+        if (HorizonApi.getInstance().getActiveSkyboxes().stream().anyMatch(skybox -> skybox instanceof DecorationBox decorationBox && decorationBox.getProperties().rotation().skyboxRotation())) {
+            sunAngle = Mth.positiveModulo(level.getDayTime() / 24000F + 0.75F, 1);
         }
 
+        this.renderSunriseAndSunset(matrix4fStack, sunAngle, sunriseOrSunsetColor);
+
         // Dark Sky
-        double eyeHeight = camera.getEntity().getEyePosition(tickDelta).y - level.getLevelData().getHorizonHeight(level);
+        double eyeHeight = camera.entity().getEyePosition(tickDelta).y - level.getLevelData().getHorizonHeight(level);
         if (eyeHeight < 0.0) {
-            ((SkyRenderer) skyRendererAccessor).renderDarkDisc();
+            skyRendererAccessor.renderDarkDisc();
         }
     }
 

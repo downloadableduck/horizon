@@ -11,7 +11,6 @@ import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.SkyRenderer;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -19,39 +18,41 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = LevelRenderer.class, priority = 900)
 public abstract class MixinLevelRenderer {
-    @Shadow
-    @Final
-    public SkyRenderer skyRenderer;
-
-    @Shadow
-    @Final
-    public RenderBuffers renderBuffers;
+    @Unique
+    private SkyRenderer skyRenderer;
 
     @Unique
-    private float nuit$tickDelta;
+    @Final
+    private RenderBuffers renderBuffers;
 
     @Unique
-    private GpuBufferSlice nuit$fogParameters;
+    private static float nuit$tickDelta;
 
-    @Inject(method = "addSkyPass", at = @At(value = "HEAD"))
+    @Unique
+    private static GpuBufferSlice nuit$fogParameters;
+
+    @Inject(method = "addSkyPass*", remap = false, at = @At(value = "HEAD", remap = false))
     private void nuit$preAddSkyPass(FrameGraphBuilder frameGraphBuilder, Camera camera, GpuBufferSlice gpuBufferSlice, CallbackInfo ci) {
-        this.nuit$tickDelta = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaTicks();
-        this.nuit$fogParameters = RenderSystem.getShaderFog();
+        nuit$tickDelta = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaTicks();
+        nuit$fogParameters = RenderSystem.getShaderFog();
     }
 
     /**
      * Contains the logic for when skyboxes should be rendered.
      */
-    @Inject(method = {"method_62215", "addSkyPass"}, require = 1, at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;setShaderFog(Lcom/mojang/blaze3d/buffers/GpuBufferSlice;)V", shift = At.Shift.AFTER), cancellable = true)    private void nuit$renderCustomSkyboxes(CallbackInfo ci) {
+    @Inject(method = {"method_62215", "addSkyPass"}, require = 1, at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;setShaderFog(Lcom/mojang/blaze3d/buffers/GpuBufferSlice;)V", shift = At.Shift.AFTER), cancellable = true)
+    private static void nuit$renderCustomSkyboxes(CallbackInfo ci) {
         SkyboxManager skyboxManager = SkyboxManager.getInstance();
+        Minecraft instance = Minecraft.getInstance();
         if (skyboxManager.isEnabled() && !skyboxManager.getActiveSkyboxes().isEmpty()) {
+            LevelRenderer levelRenderer = instance.levelRenderer;
             skyboxManager.renderSkyboxes(
-                    (SkyRenderer) skyRenderer,
+                    levelRenderer.skyRenderer,
                     RenderSystem.getModelViewStack(),
-                    this.nuit$tickDelta,
+                    nuit$tickDelta,
                     Minecraft.getInstance().gameRenderer.getMainCamera(),
-                    this.nuit$fogParameters,
-                    this.renderBuffers.bufferSource()
+                    nuit$fogParameters,
+                    levelRenderer.renderBuffers.bufferSource()
             );
             ci.cancel();
         }

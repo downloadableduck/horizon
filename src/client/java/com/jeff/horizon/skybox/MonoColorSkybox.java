@@ -1,6 +1,5 @@
 package com.jeff.horizon.skybox;
 
-import com.jeff.horizon.HorizonClient;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
@@ -11,6 +10,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.jeff.horizon.HorizonClient;
 import com.jeff.horizon.components.Blend;
 import com.jeff.horizon.components.Conditions;
 import com.jeff.horizon.components.Properties;
@@ -22,17 +22,18 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SkyRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 import org.joml.Vector4f;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 public class MonoColorSkybox extends AbstractSkybox {
     private static final Function<BlendFunction, RenderPipeline> MONO_COLOR_SKYBOX_PIPELINE_CONSUMER = (blendFunction) -> {
         RenderPipeline.Builder builder = RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET);
-        builder.withLocation(ResourceLocation.tryBuild(HorizonClient.MOD_ID, "pipeline/mono_color_skybox"));
+        builder.withLocation(Objects.requireNonNull(Identifier.tryBuild(HorizonClient.MOD_ID, "pipeline/mono_color_skybox")));
         builder.withVertexShader("core/position_color");
         builder.withFragmentShader("core/position_color");
         builder.withDepthWrite(false);

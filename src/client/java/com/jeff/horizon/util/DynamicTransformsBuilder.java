@@ -7,7 +7,10 @@ import org.joml.Vector4f;
 
 import java.util.Optional;
 
+import static com.mojang.blaze3d.systems.RenderSystem.assertOnRenderThread;
+
 public final class DynamicTransformsBuilder {
+
     private Optional<Matrix4f> modelViewMatrix = Optional.empty();
     private Optional<Vector4f> colorModulator = Optional.empty();
     private Optional<Vector3f> modelOffset = Optional.empty();
@@ -56,6 +59,6 @@ public final class DynamicTransformsBuilder {
     }
 
     public com.mojang.blaze3d.buffers.GpuBufferSlice build() {
-        return RenderSystem.getDynamicUniforms().writeTransform(this.modelViewMatrix.orElse(RenderSystem.getModelViewMatrix()), this.colorModulator.orElse(new Vector4f(1.0F, 1.0F, 1.0F, 1.0F)), this.modelOffset.orElse(new Vector3f()), this.textureMatrix.orElse(RenderSystem.getTextureMatrix()), +this.lineWidth.orElse(RenderSystem.getShaderLineWidth()));
+        return RenderSystem.getDynamicUniforms().writeTransform(this.modelViewMatrix.orElse(RenderSystem.getModelViewMatrix()), this.colorModulator.orElse(new Vector4f(1.0F, 1.0F, 1.0F, 1.0F)), this.modelOffset.orElse(new Vector3f()), this.textureMatrix.orElse(RenderSystem.getModelViewMatrix()));
     }
 }

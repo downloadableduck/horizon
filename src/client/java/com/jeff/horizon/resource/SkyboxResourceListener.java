@@ -6,7 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.Strictness;
 import com.jeff.horizon.HorizonClient;
 import com.jeff.horizon.api.HorizonApi;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -23,13 +23,13 @@ public class SkyboxResourceListener implements PreparableReloadListener {
     public void readFiles(ResourceManager resourceManager) {
         HorizonApi skyboxManager = HorizonApi.getInstance();
         skyboxManager.clearSkyboxes();
-        Map<ResourceLocation, Resource> resources = resourceManager.listResources("sky", resourceLocation -> resourceLocation.getNamespace().startsWith(HorizonClient.MOD_ID) && resourceLocation.getPath().endsWith(".json"));
-        resources.forEach((resourceLocation, resource) -> {
+        Map<Identifier, Resource> resources = resourceManager.listResources("sky", Identifier -> Identifier.getNamespace().startsWith(HorizonClient.MOD_ID) && Identifier.getPath().endsWith(".json"));
+        resources.forEach((Identifier, resource) -> {
             try {
                 JsonObject json = GSON.fromJson(new InputStreamReader(resource.open()), JsonObject.class);
-                skyboxManager.addSkybox(resourceLocation, json);
+                skyboxManager.addSkybox(Identifier, json);
             } catch (Exception e) {
-                HorizonClient.getLogger().error("Error reading skybox {}", resourceLocation.toString(), e);
+                HorizonClient.getLogger().error("Error reading skybox {}", Identifier.toString(), e);
             }
         });
     }
