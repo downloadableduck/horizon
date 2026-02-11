@@ -1,0 +1,1 @@
+This is a fork of the mod nuit by FlashyReese designed to be compatible with modern versions of Minecraft. Nuit adds the ability for resourcepacks to define custom skyboxes similar to what Optifine does, but for Fabric and Neoforge rather than Forge. This fork allows the mod to work on 1.21.9 and above.
