@@ -15,8 +15,9 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SkyRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
+import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 import org.lwjgl.opengl.GL46C;
@@ -25,25 +26,32 @@ import java.util.Objects;
 
 public class DecorationBox extends AbstractSkybox {
 
+    public static final Identifier SUN_LOCATION = Identifier.withDefaultNamespace("textures/environment/sun.png");
+    public static final Identifier END_LIGHT_LOCATION = Identifier.withDefaultNamespace("textures/environment/end_flash.png");
+    public static final Identifier MOON_LOCATION = Identifier.withDefaultNamespace("textures/environment/moon_phases.png");
+    public static final Identifier END_SKY_LOCATION = Identifier.withDefaultNamespace("textures/environment/end_sky.png");
+
+
+
     public static Codec<DecorationBox> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Properties.CODEC.optionalFieldOf("properties", Properties.decorations()).forGetter(DecorationBox::getProperties),
             Conditions.CODEC.optionalFieldOf("conditions", Conditions.of()).forGetter(DecorationBox::getConditions),
-            ResourceLocation.CODEC.optionalFieldOf("sun", SkyRenderer.SUN_LOCATION).forGetter(DecorationBox::getSunTexture),
-            ResourceLocation.CODEC.optionalFieldOf("moon", SkyRenderer.MOON_LOCATION).forGetter(DecorationBox::getMoonTexture),
+            Identifier.CODEC.optionalFieldOf("sun", SUN_LOCATION).forGetter(DecorationBox::getSunTexture),
+            Identifier.CODEC.optionalFieldOf("moon", MOON_LOCATION).forGetter(DecorationBox::getMoonTexture),
             Codec.BOOL.optionalFieldOf("showSun", false).forGetter(DecorationBox::isSunEnabled),
             Codec.BOOL.optionalFieldOf("showMoon", false).forGetter(DecorationBox::isMoonEnabled),
             Codec.BOOL.optionalFieldOf("showStars", false).forGetter(DecorationBox::isStarsEnabled),
             Blend.CODEC.optionalFieldOf("blend", Blend.decorations()).forGetter(DecorationBox::getBlend)
     ).apply(instance, DecorationBox::new));
 
-    private final ResourceLocation sunTexture;
-    private final ResourceLocation moonTexture;
+    private final Identifier sunTexture;
+    private final Identifier moonTexture;
     private final boolean sunEnabled;
     private final boolean moonEnabled;
     private final boolean starsEnabled;
     private final Blend blend;
 
-    public DecorationBox(Properties properties, Conditions conditions, ResourceLocation sun, ResourceLocation moon, boolean sunEnabled, boolean moonEnabled, boolean starsEnabled, Blend blend) {
+    public DecorationBox(Properties properties, Conditions conditions, Identifier sun, Identifier moon, boolean sunEnabled, boolean moonEnabled, boolean starsEnabled, Blend blend) {
         this.properties = properties;
         this.conditions = conditions;
         this.sunTexture = sun;
@@ -58,7 +66,7 @@ public class DecorationBox extends AbstractSkybox {
     public void render(SkyRenderer skyRendererAccessor, Matrix4fStack matrix4fStack, float tickDelta, Camera camera, GpuBufferSlice fogParameters, MultiBufferSource.BufferSource bufferSource) {
         PoseStack poseStack = new PoseStack();
         RenderSystem.setShaderFog(fogParameters);
-        ClientLevel level = Objects.requireNonNull((ClientLevel) camera.getEntity().level());
+        ClientLevel level = Objects.requireNonNull((ClientLevel) camera.entity().level());
 
         OverrideUtils.enableBlendingOverride(this.blend.getBlendFunction());
 
@@ -76,7 +84,7 @@ public class DecorationBox extends AbstractSkybox {
         }
 
         if (this.moonEnabled) {
-            this.renderMoon(level.getMoonPhase(), (com.jeff.horizon.skybox.decorations.MultiBufferSource) bufferSource, poseStack);
+            this.renderMoon((int) level.getDayTime(), (com.jeff.horizon.skybox.decorations.MultiBufferSource) bufferSource, poseStack);
         }
 
         if (this.sunEnabled || this.moonEnabled) {
@@ -86,7 +94,7 @@ public class DecorationBox extends AbstractSkybox {
         if (this.starsEnabled) {
             //PoseStack poseStack = new PoseStack();
             poseStack.mulPose(matrix4fStack);
-            skyRendererAccessor.renderStars(level.getStarBrightness(tickDelta), poseStack);
+            skyRendererAccessor.renderStars(5, poseStack);
         }
 
         matrix4fStack.popMatrix();
@@ -120,11 +128,11 @@ public class DecorationBox extends AbstractSkybox {
         vertexConsumer.addVertex(matrix4f, -20.0F, -100.0F, -20.0F).setUv(endX, startY).setColor(p);
     }
 
-    public ResourceLocation getSunTexture() {
+    public Identifier getSunTexture() {
         return this.sunTexture;
     }
 
-    public ResourceLocation getMoonTexture() {
+    public Identifier getMoonTexture() {
         return this.moonTexture;
     }
 

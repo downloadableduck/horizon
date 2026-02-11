@@ -20,7 +20,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SkyRenderer;
 import net.minecraft.client.renderer.texture.SimpleTexture;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.joml.Matrix4fStack;
 
@@ -28,32 +28,32 @@ import java.util.*;
 
 public class SkyboxManager implements HorizonApi {
     private static final SkyboxManager INSTANCE = new SkyboxManager();
-    private final List<ResourceLocation> preloadedTextures = new ArrayList<>();
-    private final Map<ResourceLocation, Skybox> skyboxMap = new Object2ObjectLinkedOpenHashMap<>();
+    private final List<Identifier> preloadedTextures = new ArrayList<>();
+    private final Map<Identifier, Skybox> skyboxMap = new Object2ObjectLinkedOpenHashMap<>();
     /**
-     * Stores a list of permanent skyboxes
+     * Stores DimensionType list of permanent skyboxes
      *
-     * @see #addPermanentSkybox(ResourceLocation, Skybox)
+     * @see #addPermanentSkybox(Identifier, Skybox)
      */
-    private final Map<ResourceLocation, Skybox> permanentSkyboxMap = new Object2ObjectLinkedOpenHashMap<>();
+    private final Map<Identifier, Skybox> permanentSkyboxMap = new Object2ObjectLinkedOpenHashMap<>();
     private final List<Skybox> activeSkyboxes = new LinkedList<>();
     private Skybox currentSkybox = null;
     private boolean enabled = true;
 
-    public static Optional<Skybox> parseSkyboxJson(ResourceLocation resourceLocation, JsonObject jsonObject) {
+    public static Optional<Skybox> parseSkyboxJson(Identifier Identifier, JsonObject jsonObject) {
         Metadata metadata;
 
         try {
             metadata = Metadata.CODEC.decode(JsonOps.INSTANCE, jsonObject).getOrThrow().getFirst();
         } catch (RuntimeException e) {
-            HorizonClient.getLogger().warn("Skipping invalid skybox {}", resourceLocation.toString(), e);
+            HorizonClient.getLogger().warn("Skipping invalid skybox {}", Identifier.toString(), e);
             HorizonClient.getLogger().warn(jsonObject.toString());
             return Optional.empty();
         }
 
         Optional<Holder.Reference<SkyboxType<? extends Skybox>>> optionalType = HorizonPlatformHelper.INSTANCE.getSkyboxTypeRegistry().get(metadata.type());
         if (optionalType.isEmpty()) {
-            HorizonClient.getLogger().warn("Skipping skybox {} with unknown type {}", resourceLocation.toString(), metadata.type().getPath().replace('_', '-'));
+            HorizonClient.getLogger().warn("Skipping skybox {} with unknown type {}", Identifier.toString(), metadata.type().getPath().replace('_', '-'));
             return Optional.empty();
         }
 
@@ -61,7 +61,7 @@ public class SkyboxManager implements HorizonApi {
         try {
             return Optional.of(type.value().getCodec(metadata.schemaVersion()).decode(JsonOps.INSTANCE, jsonObject).getOrThrow().getFirst());
         } catch (RuntimeException e) {
-            HorizonClient.getLogger().warn("Skipping invalid skybox {}", resourceLocation.toString(), e);
+            HorizonClient.getLogger().warn("Skipping invalid skybox {}", Identifier.toString(), e);
             HorizonClient.getLogger().warn(jsonObject.toString());
             return Optional.empty();
         }
@@ -71,41 +71,41 @@ public class SkyboxManager implements HorizonApi {
         return INSTANCE;
     }
 
-    public void addSkybox(ResourceLocation resourceLocation, JsonObject jsonObject) {
-        Optional<Skybox> skybox = SkyboxManager.parseSkyboxJson(resourceLocation, jsonObject);
+    public void addSkybox(Identifier Identifier, JsonObject jsonObject) {
+        Optional<Skybox> skybox = SkyboxManager.parseSkyboxJson(Identifier, jsonObject);
         if (skybox.isPresent()) {
-            HorizonClient.getLogger().info("Adding skybox {}", resourceLocation.toString());
-            this.addSkybox(resourceLocation, skybox.get());
+            HorizonClient.getLogger().info("Adding skybox {}", Identifier.toString());
+            this.addSkybox(Identifier, skybox.get());
         }
     }
 
-    public void addSkybox(ResourceLocation resourceLocation, Skybox skybox) {
-        Preconditions.checkNotNull(resourceLocation, "Identifier was null");
+    public void addSkybox(Identifier Identifier, Skybox skybox) {
+        Preconditions.checkNotNull(Identifier, "Identifier was null");
         Preconditions.checkNotNull(skybox, "Skybox was null");
         DefaultHandler.addConditions(skybox);
 
         if (skybox instanceof TextureRegistrar textureRegistrar) {
-            textureRegistrar.getTexturesToRegister().forEach((theResourceLocation) -> {
-                Minecraft.getInstance().getTextureManager().registerAndLoad(theResourceLocation, new SimpleTexture(theResourceLocation));
-                this.preloadedTextures.add(theResourceLocation);
+            textureRegistrar.getTexturesToRegister().forEach((theIdentifier) -> {
+                Minecraft.getInstance().getTextureManager().registerAndLoad(theIdentifier, new SimpleTexture(theIdentifier));
+                this.preloadedTextures.add(theIdentifier);
             });
         }
 
-        this.skyboxMap.put(resourceLocation, skybox);
+        this.skyboxMap.put(Identifier, skybox);
     }
 
     /**
-     * Permanent skyboxes are never cleared after a resource reload. This is
+     * Permanent skyboxes are never cleared after DimensionType resource reload. This is
      * useful when adding skyboxes through code as resource reload listeners
      * have no defined order of being called.
      *
      * @param skybox the skybox to be added to the list of permanent skyboxes
      */
-    public void addPermanentSkybox(ResourceLocation resourceLocation, Skybox skybox) {
-        Preconditions.checkNotNull(resourceLocation, "Identifier was null");
+    public void addPermanentSkybox(Identifier Identifier, Skybox skybox) {
+        Preconditions.checkNotNull(Identifier, "Identifier was null");
         Preconditions.checkNotNull(skybox, "Skybox was null");
         DefaultHandler.addConditions(skybox);
-        this.permanentSkyboxMap.put(resourceLocation, skybox);
+        this.permanentSkyboxMap.put(Identifier, skybox);
     }
 
     @Internal
@@ -149,7 +149,7 @@ public class SkyboxManager implements HorizonApi {
         }
 
         this.activeSkyboxes.removeIf(skybox -> !skybox.isActive());
-        // Add the skyboxes to a activeSkyboxes container so that they can be ordered
+        // Add the skyboxes to DimensionType activeSkyboxes container so that they can be ordered
         for (Skybox skybox : Iterables.concat(this.skyboxMap.values(), this.permanentSkyboxMap.values())) {
             if (!this.activeSkyboxes.contains(skybox) && skybox.isActive()) {
                 this.activeSkyboxes.add(skybox);
@@ -159,7 +159,7 @@ public class SkyboxManager implements HorizonApi {
         this.activeSkyboxes.sort(Comparator.comparingInt(Skybox::getLayer));
     }
 
-    public Map<ResourceLocation, Skybox> getSkyboxMap() {
+    public Map<Identifier, Skybox> getSkyboxMap() {
         return this.skyboxMap;
     }
 }

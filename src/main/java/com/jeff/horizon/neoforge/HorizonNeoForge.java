@@ -9,7 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
@@ -22,11 +22,19 @@ import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.registries.NewRegistryEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import net.neoforged.neoforge.registries.RegistryBuilder;
+import org.jetbrains.annotations.NotNull;
 
 @Mod(HorizonClient.MOD_ID)
 public final class HorizonNeoForge {
-    public static final Registry<SkyboxType<? extends Skybox>> REGISTRY = new RegistryBuilder<>(SkyboxType.SKYBOX_TYPE_REGISTRY_KEY).create();
-    public final SkyboxDebugScreen screen = new SkyboxDebugScreen(Component.nullToEmpty("Skybox Debug Screen"));
+    public static final Registry<@NotNull SkyboxType<? extends Skybox>> REGISTRY = new RegistryBuilder<>(SkyboxType.SKYBOX_TYPE_REGISTRY_KEY).create();
+    public SkyboxDebugScreen screen;
+
+    private SkyboxDebugScreen skyboxDebugScreen() {
+        if (this.screen == null) {
+            this.screen = new SkyboxDebugScreen(Component.nullToEmpty("Skybox Debug Screen"));
+        }
+        return this.screen;
+    }
 
     public HorizonNeoForge(IEventBus bus) {
         bus.addListener(this::registerSkyTypeRegistry);
@@ -46,11 +54,6 @@ public final class HorizonNeoForge {
     }
 
     @SubscribeEvent
-    public void registerClientTick(ClientTickEvent.Post event) {
-        HorizonClient.config().getKeyBinding().tick(Minecraft.getInstance());
-    }
-
-    @SubscribeEvent
     public void registerWorldTick(LevelTickEvent.Post event) {
         if (event.getLevel() instanceof ClientLevel level) {
             SkyboxManager.getInstance().tick(level);
@@ -59,7 +62,10 @@ public final class HorizonNeoForge {
 
     @SubscribeEvent
     public void registerHudRender(RenderGuiLayerEvent.Post event) {
-        screen.renderHud(event.getGuiGraphics());
+        this.skyboxDebugScreen();
+        if (Minecraft.getInstance().level != null) {
+            screen.renderHud(event.getGuiGraphics());
+        }
     }
 
     @SubscribeEvent
@@ -75,6 +81,11 @@ public final class HorizonNeoForge {
 
     @SubscribeEvent
     public void registerClientReloadListener(AddClientReloadListenersEvent event) {
-        event.addListener(ResourceLocation.fromNamespaceAndPath(HorizonClient.MOD_ID, "skybox_reader"), HorizonClient.skyboxResourceListener());
+        event.addListener(Identifier.fromNamespaceAndPath(HorizonClient.MOD_ID, "skybox_reader"), HorizonClient.skyboxResourceListener());
+    }
+
+    @SubscribeEvent
+    public void registerClientTick(ClientTickEvent.Post event) {
+        HorizonClient.config().getKeyBinding().tick(Minecraft.getInstance());
     }
 }

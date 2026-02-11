@@ -52,7 +52,7 @@ public class HorizonConfig {
                 throw new RuntimeException("Could not create parent directories");
             }
         } else if (!dir.isDirectory()) {
-            throw new RuntimeException("The parent file is not a directory");
+            throw new RuntimeException("The parent file is not DimensionType directory");
         }
 
         try (FileWriter writer = new FileWriter(this.file)) {

@@ -4,6 +4,7 @@ import com.jeff.horizon.components.*;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
@@ -18,7 +19,7 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SkyRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 
@@ -67,9 +68,10 @@ public class MultiTexturedSkybox extends TexturedSkybox {
                     builder.addVertex(matrix4f, intersectionOnCurrentTexture.maxU(), -this.quadSize, intersectionOnCurrentTexture.minV()).setUv(intersectionOnCurrentFrame.maxU(), intersectionOnCurrentFrame.minV());
 
                     GpuTextureView textureView = Minecraft.getInstance().getTextureManager().getTexture(animatableTexture.getTexture().getTextureId()).getTextureView();
+                    GpuSampler gpuSampler = Minecraft.getInstance().getTextureManager().getTexture(animatableTexture.getTexture().getTextureId()).getSampler();
                     BufferUploader.drawWithShader(pipeline, builder.buildOrThrow(), (pass) -> {
                         pass.setUniform("DynamicTransforms", dynamicTransforms);
-                        pass.bindSampler("Sampler0", textureView);
+                        pass.bindTexture("Sampler0", textureView, gpuSampler);
                     });
                 }
             }
@@ -81,7 +83,7 @@ public class MultiTexturedSkybox extends TexturedSkybox {
     }
 
     @Override
-    public List<ResourceLocation> getTexturesToRegister() {
+    public List<Identifier> getTexturesToRegister() {
         return this.animatableTextures.stream().map(texture -> texture.getTexture().getTextureId()).toList();
     }
 }

@@ -19,11 +19,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = LevelRenderer.class, priority = 900)
 public abstract class MixinLevelRenderer {
-    @Shadow
-    @Final
+    @Unique
     public SkyRenderer skyRenderer;
 
-    @Shadow
+    @Unique
     @Final
     public RenderBuffers renderBuffers;
 

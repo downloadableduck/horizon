@@ -4,6 +4,7 @@ import com.jeff.horizon.components.*;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
@@ -18,11 +19,15 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SkyRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.resources.Identifier;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 
 import java.util.List;
+
+import static com.jeff.horizon.skybox.vanilla.EndSkybox.END_SKY_LOCATION;
 
 public class SquareTexturedSkybox extends TexturedSkybox {
     public static Codec<SquareTexturedSkybox> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -56,14 +61,17 @@ public class SquareTexturedSkybox extends TexturedSkybox {
         }
         GpuBufferSlice dynamicTransforms = transformsBuilder.build();
         GpuTextureView textureView = Minecraft.getInstance().getTextureManager().getTexture(this.texture.getTextureId()).getTextureView();
+        TextureManager textureManager = Minecraft.getInstance().getTextureManager();
+        GpuSampler gpuSampler = textureManager.getTexture(END_SKY_LOCATION).getSampler();
+        //if there is DimensionType crash this might be the issue, end_sky_location is just DimensionType temporary placeholder
         BufferUploader.drawWithShader(pipeline, builder.buildOrThrow(), (pass) -> {
             pass.setUniform("DynamicTransforms", dynamicTransforms);
-            pass.bindSampler("Sampler0", textureView);
+            pass.bindTexture("Sampler0", textureView, gpuSampler);
         });
     }
 
     @Override
-    public List<ResourceLocation> getTexturesToRegister() {
+    public List<Identifier> getTexturesToRegister() {
         return List.of(this.texture.getTextureId());
     }
 

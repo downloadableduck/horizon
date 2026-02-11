@@ -3,6 +3,7 @@ package com.jeff.horizon;
 import com.jeff.horizon.api.HorizonPlatformHelper;
 import com.jeff.horizon.config.HorizonConfig;
 import com.jeff.horizon.resource.SkyboxResourceListener;
+import net.minecraft.client.Minecraft;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,6 +13,7 @@ public class HorizonClient {
     private static final SkyboxResourceListener skyboxResourceListener = new SkyboxResourceListener();
     private static Logger LOGGER;
     private static HorizonConfig CONFIG;
+    public static Minecraft instance = Minecraft.getInstance();
 
     public static void init() {
         SkyboxManager.getInstance().setEnabled(config().generalSettings.enable);

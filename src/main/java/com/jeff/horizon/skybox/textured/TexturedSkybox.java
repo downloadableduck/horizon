@@ -19,7 +19,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SkyRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.joml.Matrix4fStack;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL46C;
@@ -30,7 +30,7 @@ import java.util.function.Function;
 public abstract class TexturedSkybox extends AbstractSkybox implements TextureRegistrar {
     public static final Function<BlendFunction, RenderPipeline> TEXTURED_SKYBOX_PIPELINE_CONSUMER = (blendFunction) -> {
         RenderPipeline.Builder builder = RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET);
-        builder.withLocation(ResourceLocation.tryBuild(HorizonClient.MOD_ID, "pipeline/textured_skybox"));
+        builder.withLocation(Identifier.tryBuild(HorizonClient.MOD_ID, "pipeline/textured_skybox"));
         builder.withVertexShader("core/position_tex");
         builder.withFragmentShader("core/position_tex");
         builder.withDepthWrite(false);
@@ -61,7 +61,7 @@ public abstract class TexturedSkybox extends AbstractSkybox implements TextureRe
     }
 
     /**
-     * Overrides and makes final here as there are options that should always be respected in a textured skybox.
+     * Overrides and makes final here as there are options that should always be respected in DimensionType textured skybox.
      *
      * @param fogParameters         The current PoseStack.
      * @param skyRendererAccess Access to the skyRenderer as skyboxes often require it.
@@ -74,10 +74,11 @@ public abstract class TexturedSkybox extends AbstractSkybox implements TextureRe
         DynamicTransformsBuilder transformsBuilder = new DynamicTransformsBuilder()
                 .withShaderColor(colorModifier);
 
-        ClientLevel level = Objects.requireNonNull(Minecraft.getInstance().level);
+        ClientLevel level = (Minecraft.getInstance().level);
         matrix4fStack.pushMatrix();
         // TODO/NOTE: Should matrix4fStack inherit the current pose from poseStack?
         //  (currently idk if poseStack contains anything so I just ignored it)
+        assert level != null;
         this.rotation.apply(matrix4fStack, level);
         this.renderSkybox(skyRendererAccess, matrix4fStack, tickDelta, camera, transformsBuilder, fogParameters, bufferSource);
         matrix4fStack.popMatrix();

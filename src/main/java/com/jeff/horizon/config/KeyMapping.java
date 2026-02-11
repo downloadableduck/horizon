@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 public class KeyMapping extends net.minecraft.client.KeyMapping {
@@ -33,7 +33,7 @@ public class KeyMapping extends net.minecraft.client.KeyMapping {
     private InputConstants.Key key;
     private boolean isDown;
     private int clickCount;
-    public static final KeyMapping.Category NUIT_CATEGORY = KeyMapping.Category.register(ResourceLocation.fromNamespaceAndPath("nuit", "category"));
+    public static final KeyMapping.Category NUIT_CATEGORY = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("nuit", "category"));
 
     public KeyMapping(String string, InputConstants.Type type, int i, String string2) {
         super(string, type, i, NUIT_CATEGORY);

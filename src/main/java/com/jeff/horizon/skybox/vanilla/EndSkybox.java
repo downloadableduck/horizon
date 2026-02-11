@@ -2,6 +2,7 @@ package com.jeff.horizon.skybox.vanilla;
 
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
@@ -20,7 +21,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SkyRenderer;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
@@ -31,7 +32,7 @@ public class EndSkybox extends AbstractSkybox {
             Conditions.CODEC.optionalFieldOf("conditions", Conditions.of()).forGetter(AbstractSkybox::getConditions)
     ).apply(instance, EndSkybox::new));
 
-    public static final ResourceLocation END_SKY_LOCATION = ResourceLocation.withDefaultNamespace("textures/environment/end_sky.png");
+    public static final Identifier END_SKY_LOCATION = Identifier.withDefaultNamespace("textures/environment/end_sky.png");
 
     public EndSkybox(Properties properties, Conditions conditions) {
         super(properties, conditions);
@@ -54,11 +55,11 @@ public class EndSkybox extends AbstractSkybox {
         GpuBufferSlice dynamicTransforms = new DynamicTransformsBuilder().build();
         TextureManager textureManager = Minecraft.getInstance().getTextureManager();
         AbstractTexture abstractTexture = textureManager.getTexture(END_SKY_LOCATION);
-        abstractTexture.setFilter(false, false);
+        GpuSampler gpuSampler = abstractTexture.getSampler();
         GpuTextureView endSkyTextureView = abstractTexture.getTextureView();
         BufferUploader.drawWithShader(pipeline, builder.buildOrThrow(), (pass) -> {
             pass.setUniform("DynamicTransforms", dynamicTransforms);
-            pass.bindSampler("Sampler0", endSkyTextureView);
+            pass.bindTexture("Sampler0", endSkyTextureView, gpuSampler);
         });
     }
 }
