@@ -1,0 +1,6 @@
+accessWidener v2 named
+accessible field net/minecraft/client/renderer/RenderPipelines MATRICES_PROJECTION_SNIPPET Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+accessible method net/minecraft/client/renderer/SkyRenderer renderStars (FLcom/mojang/blaze3d/vertex/PoseStack;)V
+accessible field net/minecraft/client/renderer/LevelRenderer skyRenderer Lnet/minecraft/client/renderer/SkyRenderer;
+accessible field net/minecraft/client/renderer/LevelRenderer renderBuffers Lnet/minecraft/client/renderer/RenderBuffers;
+accessible field net/minecraft/client/renderer/SkyRenderer topSkyBuffer Lcom/mojang/blaze3d/buffers/GpuBuffer;
