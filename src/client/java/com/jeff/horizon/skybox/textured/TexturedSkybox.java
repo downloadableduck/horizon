@@ -1,8 +1,10 @@
 package com.jeff.horizon.skybox.textured;
 
 import com.jeff.horizon.HorizonClient;
+import com.jeff.horizon.util.OverrideUtils;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -13,6 +15,7 @@ import com.jeff.horizon.components.Rotation;
 import com.jeff.horizon.skybox.AbstractSkybox;
 import com.jeff.horizon.skybox.TextureRegistrar;
 import com.jeff.horizon.util.DynamicTransformsBuilder;
+import net.fabricmc.fabric.api.client.rendering.v1.FabricRenderPipeline;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -33,12 +36,12 @@ public abstract class TexturedSkybox extends AbstractSkybox implements TextureRe
         builder.withLocation(Identifier.tryBuild(HorizonClient.MOD_ID, "pipeline/textured_skybox"));
         builder.withVertexShader("core/position_tex");
         builder.withFragmentShader("core/position_tex");
-        builder.withDepthWrite(false);
-        if (blendFunction != null) {
+        builder.withUsePipelineDrawModeForGui(false);
+        /*if (blendFunction != null) {
             builder.withBlend(blendFunction);
         } else {
             builder.withoutBlend();
-        }
+        }*/
         builder.withSampler("Sampler0");
         builder.withVertexFormat(DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS);
         return builder.build();
@@ -69,10 +72,12 @@ public abstract class TexturedSkybox extends AbstractSkybox implements TextureRe
      * @param bufferSource
      */
     @Override
-    public final void render(SkyRenderer skyRendererAccess, Matrix4fStack matrix4fStack, float tickDelta, Camera camera, GpuBufferSlice fogParameters, MultiBufferSource bufferSource) {
+    public final void render(SkyRenderer skyRendererAccess, Matrix4fStack matrix4fStack, float tickDelta, Camera camera, GpuBufferSlice fogParameters, MultiBufferSource.BufferSource bufferSource) {
         Vector4f colorModifier = this.blend.applyEquationAndGetColor(this.alpha);
         DynamicTransformsBuilder transformsBuilder = new DynamicTransformsBuilder()
                 .withShaderColor(colorModifier);
+
+        OverrideUtils.enableBlendingOverride(this.blend.getBlendFunction());
 
         ClientLevel level = Objects.requireNonNull(Minecraft.getInstance().level);
         matrix4fStack.pushMatrix();
@@ -81,6 +86,8 @@ public abstract class TexturedSkybox extends AbstractSkybox implements TextureRe
         this.rotation.apply(matrix4fStack, level);
         this.renderSkybox(skyRendererAccess, matrix4fStack, tickDelta, camera, transformsBuilder, fogParameters, bufferSource);
         matrix4fStack.popMatrix();
+
+        OverrideUtils.disableBlendingOverride();
 
         GL46C.glBlendEquation(GL46C.GL_FUNC_ADD); // Fixme: avoid direct gl calls
     }

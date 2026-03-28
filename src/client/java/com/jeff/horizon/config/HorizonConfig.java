@@ -8,7 +8,9 @@ import com.jeff.horizon.SkyboxManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
+import org.lwjgl.glfw.GLFW;
 
+import javax.swing.text.JTextComponent;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -73,8 +75,8 @@ public class HorizonConfig {
 
     public static class KeyBindingImpl {
 
-        public final KeyMapping toggleNuit = new KeyMapping("key.nuit.toggle", InputConstants.Type.KEYSYM, -1, "category.nuit");
-        public final KeyMapping toggleSkyboxDebugHud = new KeyMapping("key.nuit.toggle.debug_hud", InputConstants.Type.KEYSYM, -1, "category.nuit");
+        public final KeyMapping toggleNuit = new KeyMapping("key.nuit.toggle", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_I, "category.nuit");
+        public final KeyMapping toggleSkyboxDebugHud = new KeyMapping("key.nuit.toggle.debug_hud", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_O, "category.nuit");
 
         public void tick(Minecraft client) {
             while (this.toggleNuit.consumeClick()) {
@@ -83,9 +85,9 @@ public class HorizonConfig {
                 SkyboxManager.getInstance().setEnabled(HorizonClient.config().generalSettings.enable);
                 LocalPlayer player = Objects.requireNonNull(client.player);
                 if (SkyboxManager.getInstance().isEnabled()) {
-                    player.displayClientMessage(Component.translatable("nuit.message.enabled"), false);
+                    player.sendSystemMessage(Component.translatable("nuit.message.enabled"));
                 } else {
-                    player.displayClientMessage(Component.translatable("nuit.message.disabled"), false);
+                    player.sendSystemMessage(Component.translatable("nuit.message.disabled"));
                 }
             }
 

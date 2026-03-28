@@ -1,6 +1,9 @@
 package com.jeff.horizon.fabric;
 
 import com.jeff.horizon.HorizonClient;
+import com.jeff.horizon.config.HorizonConfig;
+import com.mojang.blaze3d.opengl.GlCommandEncoder;
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.serialization.Lifecycle;
 import com.jeff.horizon.SkyboxManager;
 import com.jeff.horizon.api.skyboxes.Skybox;
@@ -8,11 +11,17 @@ import com.jeff.horizon.screen.SkyboxDebugScreen;
 import com.jeff.horizon.skybox.SkyboxType;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.impl.client.rendering.hud.HudLayer;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.state.gui.GuiRenderState;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
@@ -43,11 +52,16 @@ public class HorizonClientFabric implements ClientModInitializer {
             }
         });
 
-        ClientTickEvents.END_WORLD_TICK.register(client -> SkyboxManager.getInstance().tick(client));
-        ClientTickEvents.END_CLIENT_TICK.register(client -> HorizonClient.config().getKeyBinding().tick(client));
+        ClientTickEvents.END_LEVEL_TICK.register(client -> SkyboxManager.getInstance().tick(client));
         SkyboxDebugScreen screen = new SkyboxDebugScreen(Component.nullToEmpty("Skybox Debug Screen"));
-        HudRenderCallback.EVENT.register((drawContext, tickDelta) -> screen.renderHud(drawContext));
-        KeyBindingHelper.registerKeyBinding(HorizonClient.config().getKeyBinding().toggleNuit);
-        KeyBindingHelper.registerKeyBinding(HorizonClient.config().getKeyBinding().toggleSkyboxDebugHud);
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            HorizonClient.config().getKeyBinding().tick(client);
+            if (HorizonClient.config().getKeyBinding().toggleSkyboxDebugHud.consumeClick()) {
+                screen.renderHud(new GuiGraphicsExtractor(Minecraft.getInstance(), new GuiRenderState(), (int) Minecraft.getInstance().mouseHandler.xpos(), (int) Minecraft.getInstance().mouseHandler.ypos()));
+            } if (HorizonClient.config().getKeyBinding().toggleNuit.consumeClick()) {
+            }
+        });
+        KeyMappingHelper.registerKeyMapping(HorizonClient.config().getKeyBinding().toggleNuit);
+        KeyMappingHelper.registerKeyMapping(HorizonClient.config().getKeyBinding().toggleSkyboxDebugHud);
     }
 }

@@ -25,7 +25,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SkyRenderer;
-import net.minecraft.client.renderer.state.SkyRenderState;
+import net.minecraft.client.renderer.state.level.SkyRenderState;
 import net.minecraft.data.BlockFamily;
 import net.minecraft.data.worldgen.biome.OverworldBiomes;
 import net.minecraft.util.ARGB;
@@ -75,20 +75,19 @@ public class OverworldSkybox extends AbstractSkybox {
 
 
     @Override
-    public void render(SkyRenderer skyRendererAccessor, Matrix4fStack matrix4fStack, float tickDelta, Camera camera, GpuBufferSlice fogParameters, MultiBufferSource bufferSource) {
+    public void render(SkyRenderer skyRendererAccessor, Matrix4fStack matrix4fStack, float tickDelta, Camera camera, GpuBufferSlice fogParameters, MultiBufferSource.BufferSource bufferSource) {
         RenderSystem.setShaderFog(fogParameters);
 
-        this.skyRenderStateAccessor(new SkyRenderState());
+        this.skyRenderStateAccessor(Minecraft.getInstance().levelRenderer.levelRenderState.skyRenderState);
 
         ClientLevel level = (ClientLevel) camera.entity().level();
-        float timeOfDay = DeltaTracker.ONE.getGameTimeDeltaTicks();
         int sunriseOrSunsetColor = EnvironmentAttributes.SUNRISE_SUNSET_COLOR.defaultValue();
         int skyColor = OverworldBiomes.calculateSkyColor(tickDelta);
 
         // Light Sky
         this.renderSkyDisc(ARGB.redFloat(skyColor), ARGB.greenFloat(skyColor), ARGB.blueFloat(skyColor), skyRendererAccessor);
         if (HorizonApi.getInstance().getActiveSkyboxes().stream().anyMatch(skybox -> skybox instanceof DecorationBox decorationBox && decorationBox.getProperties().rotation().skyboxRotation())) {
-            sunAngle = Mth.positiveModulo(level.getDayTime() / 24000F + 0.75F, 1);
+            sunAngle = Mth.positiveModulo(level.getOverworldClockTime() / 24000F + 0.75F, 1);
         }
 
         this.renderSunriseAndSunset(matrix4fStack, sunAngle, sunriseOrSunsetColor);
@@ -100,6 +99,7 @@ public class OverworldSkybox extends AbstractSkybox {
         }
     }
 
+    /**This method isn't the root of the memory leaks.*/
     private void renderSunriseAndSunset(Matrix4fStack matrix4fStack, float sunAngle, int sunriseOrSunsetColor) {
         matrix4fStack.pushMatrix();
 
@@ -126,6 +126,7 @@ public class OverworldSkybox extends AbstractSkybox {
         }
         GpuBufferSlice dynamicTransforms = new DynamicTransformsBuilder().build();
         BufferUploader.drawWithShader(pipeline, bufferBuilder.buildOrThrow(), (pass) -> pass.setUniform("DynamicTransforms", dynamicTransforms));
+        byteBufferBuilder.discard();
         matrix4fStack.popMatrix();
     }
 }

@@ -1,7 +1,10 @@
 package com.jeff.horizon.skybox.decorations;
 
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.DestFactor;
+import com.mojang.blaze3d.platform.SourceFactor;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -29,6 +32,7 @@ import org.joml.Matrix4fStack;
 import org.lwjgl.opengl.GL46C;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 
 public class DecorationBox extends AbstractSkybox {
@@ -82,7 +86,7 @@ public class DecorationBox extends AbstractSkybox {
     }
 
     @Override
-    public void render(SkyRenderer skyRendererAccessor, Matrix4fStack matrix4fStack, float tickDelta, Camera camera, GpuBufferSlice fogParameters, MultiBufferSource bufferSource) {
+    public void render(SkyRenderer skyRendererAccessor, Matrix4fStack matrix4fStack, float tickDelta, Camera camera, GpuBufferSlice fogParameters, MultiBufferSource.BufferSource bufferSource) {
         PoseStack poseStack = new PoseStack();
         RenderSystem.setShaderFog(fogParameters);
         ClientLevel level = Objects.requireNonNull((ClientLevel) camera.entity().level());
@@ -99,15 +103,15 @@ public class DecorationBox extends AbstractSkybox {
         // poseStack.mulPose(Axis.XP.rotationDegrees(level.getSunAngle(tickDelta) * 360.0F * this.properties.rotation().speed()));
 
         if (this.sunEnabled) {
-            this.renderSun(bufferSource, poseStack);
+          //  this.renderSun(bufferSource, poseStack);
         }
 
         if (this.moonEnabled) {
-            this.renderMoon((int) level.getDayTime(), bufferSource, poseStack);
+            //this.renderMoon((int) level.getDefaultClockTime(), bufferSource, poseStack);
         }
 
         if (this.sunEnabled || this.moonEnabled) {
-            Minecraft.getInstance().levelRenderer.renderBuffers.bufferSource().endBatch();
+            //Minecraft.getInstance().levelRenderer.renderBuffers.bufferSource().endBatch();
         }
 
         if (this.starsEnabled) {

@@ -14,6 +14,7 @@ import com.jeff.horizon.components.UVRange;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
+import net.minecraft.world.Difficulty;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.lwjgl.opengl.GL46C;
@@ -26,6 +27,7 @@ import java.util.ServiceLoader;
 public class Utils {
 
     public static long dayTime;
+
     public static final UVRange[] TEXTURE_FACES = new UVRange[]{
             new UVRange(0, 0, 1.0F / 3.0F, 1.0F / 2.0F), // bottom
             new UVRange(1.0F / 3.0F, 1.0F / 2.0F, 2.0F / 3.0F, 1), // north
@@ -106,17 +108,16 @@ public class Utils {
      */
 
     private void getDayTimeAccessor(ClientLevel.ClientLevelData data) {
-        dayTime = data.getDayTime();
+        dayTime = data.getGameTime();
     }
     public static double calculateRotation(double rotationSpeed, boolean isSkyboxRotation, ClientLevel world) {
         if (rotationSpeed != 0F) {
-            long timeOfDay = world.getDayTime();
-            double rotationFraction = timeOfDay / (24000.0D / rotationSpeed);
+            double rotationFraction = dayTime / (24000.0D / rotationSpeed);
             double skyAngle = Mth.positiveModulo(rotationFraction, 1);
             if (isSkyboxRotation) {
                 return 360D * skyAngle;
             } else {
-                return 360D * timeOfDay;
+                return 360D * dayTime;
             }
         } else {
             return 0D;

@@ -14,7 +14,7 @@ public interface Skybox {
 
     void render(
             SkyRenderer skyRendererAccessor, Matrix4fStack matrix4fStack, float tickDelta,
-            Camera camera, GpuBufferSlice fogParameters, MultiBufferSource bufferSource
+            Camera camera, GpuBufferSlice fogParameters, MultiBufferSource.BufferSource bufferSource
     );
 
     void tick(ClientLevel clientLevel);

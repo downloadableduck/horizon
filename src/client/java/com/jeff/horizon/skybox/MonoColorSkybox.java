@@ -36,12 +36,12 @@ public class MonoColorSkybox extends AbstractSkybox {
         builder.withLocation(Objects.requireNonNull(Identifier.tryBuild(HorizonClient.MOD_ID, "pipeline/mono_color_skybox")));
         builder.withVertexShader("core/position_color");
         builder.withFragmentShader("core/position_color");
-        builder.withDepthWrite(false);
-        if (blendFunction != null) {
+        builder.withUsePipelineDrawModeForGui(false);
+        /*if (blendFunction != null) {
             builder.withBlend(blendFunction);
         } else {
             builder.withoutBlend();
-        }
+        }*/
         builder.withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS);
         return builder.build();
     };
@@ -61,7 +61,7 @@ public class MonoColorSkybox extends AbstractSkybox {
     }
 
     @Override
-    public void render(SkyRenderer skyRendererAccess, Matrix4fStack modelViewStack, float tickDelta, Camera camera, GpuBufferSlice fogParameters, MultiBufferSource bufferSource) {
+    public void render(SkyRenderer skyRendererAccess, Matrix4fStack modelViewStack, float tickDelta, Camera camera, GpuBufferSlice fogParameters, MultiBufferSource.BufferSource bufferSource) {
         RenderSystem.setShaderFog(fogParameters);
         if (this.alpha > 0) {
             Vector4f colorModifier = this.blend.applyEquationAndGetColor(this.alpha);

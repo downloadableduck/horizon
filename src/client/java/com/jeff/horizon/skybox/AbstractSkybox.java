@@ -11,6 +11,7 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.commands.Commands;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.effect.MobEffects;
@@ -36,7 +37,7 @@ public abstract class AbstractSkybox implements HorizonSkybox {
      * The current alpha for the skybox. Expects all skyboxes extending this to accommodate this.
      * This variable is responsible for fading in/out skyboxes.
      */
-    public transient float alpha;
+    public transient float alpha ;
     protected Properties properties = Properties.of();
     protected Conditions conditions = Conditions.of();
     protected boolean unexpectedConditionTransition = false;
@@ -61,7 +62,8 @@ public abstract class AbstractSkybox implements HorizonSkybox {
      */
     @Override
     public void updateAlpha(ClientLevel level) {
-        long currentTime = level.getDayTime() % this.properties.fade().duration();
+        long currentTime = 1;//level.getOverworldClockTime() % this.properties.fade().duration();
+       // System.out.println(currentTime);
         boolean condition = this.checkConditions();
         float fadeAlpha = 1f;
         if (this.properties.fade().keyFrames().isEmpty()) {
@@ -104,7 +106,6 @@ public abstract class AbstractSkybox implements HorizonSkybox {
 
         this.alpha = fadeAlpha * this.conditionAlpha;
         this.lastTime = currentTime;
-        System.out.println("Hello from updateAlpha! Condition" + this.conditions);
     }
 
     /**
@@ -140,14 +141,14 @@ public abstract class AbstractSkybox implements HorizonSkybox {
 
     /**
      * @return Whether the current dimension sky effect is valid for this skybox
+     * When it is off, the sun and moon render. When it is on, they do not, which is exactly what we don't want.
      */
     protected boolean checkWorlds() {
         Minecraft client = Minecraft.getInstance();
         Objects.requireNonNull(client.level);
-        /*return this.conditions.getWorlds().entries().isEmpty() || this.conditions.getWorlds().excludes() ^ (
-                this.conditions.getWorlds().entries().contains(client.level.dimensionType()) ||
-                        this.conditions.getWorlds().entries().contains(DefaultHandler.DEFAULT) && DefaultHandler.checkFallbackWorlds());*/
-        return true;
+        return this.conditions.getWorlds().entries().isEmpty() || this.conditions.getWorlds().excludes() ^ (
+                this.conditions.getWorlds().entries().contains(client.level.dimension().identifier()) ||
+                        this.conditions.getWorlds().entries().contains(DefaultHandler.DEFAULT) && DefaultHandler.checkFallbackWorlds());
     }
 
     /**
@@ -267,7 +268,7 @@ public abstract class AbstractSkybox implements HorizonSkybox {
 
     @Override
     public float getAlpha() {
-        return 1.0f;
+        return alpha;
     }
 
     @Override
@@ -277,7 +278,7 @@ public abstract class AbstractSkybox implements HorizonSkybox {
 
     @Override
     public boolean isActive() {
-        return this.getAlpha() != 0F;
+        return alpha != 1.0f;
     }
 
     @Override

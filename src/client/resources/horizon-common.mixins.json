@@ -1,17 +1,18 @@
 {
-  "priority": 500,
-  "required": true,
-  "minVersion": "0.8",
+  "priority": 900,
+  "required": false,
+  "minVersion": "0.5",
   "package": "com.jeff.horizon.mixin",
   "compatibilityLevel": "JAVA_17",
-  "refmap": "nuit-refmap.json",
   "client": [
     "MixinGlCommandEncoder",
     "MixinFogRenderer",
-    "MixinLevelRenderer",
+    "MixinGlCommandEncoder",
     "RenderPipelinesAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "mixins": [
+  ]
 }
