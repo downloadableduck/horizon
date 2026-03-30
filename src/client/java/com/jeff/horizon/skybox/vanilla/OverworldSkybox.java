@@ -1,5 +1,6 @@
 package com.jeff.horizon.skybox.vanilla;
 
+import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
@@ -58,16 +59,21 @@ public class OverworldSkybox extends AbstractSkybox {
         color = skyRenderState.sunriseAndSunsetColor;
     }
 
-    public void renderSkyDisc(float f, float g, float h, SkyRenderer skyRenderer) {
-        GpuBufferSlice gpuBufferSlice = RenderSystem.getDynamicUniforms().writeTransform(RenderSystem.getModelViewMatrix(), new Vector4f(f, g, h, 1.0F), new Vector3f(), new Matrix4f());
+    public void renderSkyDisc(float f, float g, float h, SkyRenderer skyRenderer, GpuBuffer buffer) {
+        GpuBufferSlice gpuBufferSlice =
+                RenderSystem.getDynamicUniforms().writeTransform(
+                        RenderSystem.getModelViewMatrix(),
+                        new Vector4f(f, g, h, 1.0F),
+                        new Vector3f(),
+                        RenderSystem.getModelViewMatrix());
         GpuTextureView gpuTextureView = Minecraft.getInstance().getMainRenderTarget().getColorTextureView();
         GpuTextureView gpuTextureView2 = Minecraft.getInstance().getMainRenderTarget().getDepthTextureView();
 
         try (RenderPass renderPass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "Sky disc", gpuTextureView, OptionalInt.empty(), gpuTextureView2, OptionalDouble.empty())) {
-            renderPass.setPipeline(RenderPipelines.SKY);
+            renderPass.setPipeline(RenderPipelines.CELESTIAL);
             RenderSystem.bindDefaultUniforms(renderPass);
             renderPass.setUniform("DynamicTransforms", gpuBufferSlice);
-            renderPass.setVertexBuffer(0, skyRenderer.topSkyBuffer);
+            renderPass.setVertexBuffer(0, buffer);
             renderPass.draw(0, 10);
         }
 
@@ -85,9 +91,11 @@ public class OverworldSkybox extends AbstractSkybox {
         int skyColor = OverworldBiomes.calculateSkyColor(tickDelta);
 
         // Light Sky
-        this.renderSkyDisc(ARGB.redFloat(skyColor), ARGB.greenFloat(skyColor), ARGB.blueFloat(skyColor), skyRendererAccessor);
+        this.renderSkyDisc(ARGB.redFloat(skyColor), ARGB.greenFloat(skyColor), ARGB.blueFloat(skyColor), skyRendererAccessor, skyRendererAccessor.bottomSkyBuffer);
+        this.renderSkyDisc(ARGB.redFloat(skyColor), ARGB.greenFloat(skyColor), ARGB.blueFloat(skyColor), skyRendererAccessor, skyRendererAccessor.topSkyBuffer);
+
         if (HorizonApi.getInstance().getActiveSkyboxes().stream().anyMatch(skybox -> skybox instanceof DecorationBox decorationBox && decorationBox.getProperties().rotation().skyboxRotation())) {
-            sunAngle = Mth.positiveModulo(level.getOverworldClockTime() / 24000F + 0.75F, 1);
+            sunAngle = Mth.positiveModulo(this.sunAngle / 24000F + 0.75F, 1);
         }
 
         this.renderSunriseAndSunset(matrix4fStack, sunAngle, sunriseOrSunsetColor);

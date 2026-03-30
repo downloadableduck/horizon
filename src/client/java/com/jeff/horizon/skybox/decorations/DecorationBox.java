@@ -23,10 +23,12 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SkyRenderer;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.state.level.SkyRenderState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
+import net.minecraft.world.level.MoonPhase;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 import org.lwjgl.opengl.GL46C;
@@ -95,6 +97,7 @@ public class DecorationBox extends AbstractSkybox {
 
         matrix4fStack.pushMatrix();
         this.properties.rotation().apply(matrix4fStack, level);
+        SkyRenderState state = Minecraft.getInstance().levelRenderer.levelRenderState.skyRenderState;
 
         // poseStack.mulPose(Axis.YP.rotation(-90F));
         // poseStack.mulPose(Axis.YP.rotation(level.getTimeOfDay(tickDelta) * 360.0F));
@@ -103,15 +106,17 @@ public class DecorationBox extends AbstractSkybox {
         // poseStack.mulPose(Axis.XP.rotationDegrees(level.getSunAngle(tickDelta) * 360.0F * this.properties.rotation().speed()));
 
         if (this.sunEnabled) {
-          //  this.renderSun(bufferSource, poseStack);
+            //skyRendererAccessor.renderSun(1, poseStack);
+           //this.renderSun(bufferSource, poseStack);
         }
 
         if (this.moonEnabled) {
-            //this.renderMoon((int) level.getDefaultClockTime(), bufferSource, poseStack);
+            skyRendererAccessor.renderMoon(MoonPhase.FULL_MOON, 1, poseStack);
+            //his.renderMoon((int) level.getDefaultClockTime(), bufferSource, poseStack);
         }
 
         if (this.sunEnabled || this.moonEnabled) {
-            //Minecraft.getInstance().levelRenderer.renderBuffers.bufferSource().endBatch();
+            Minecraft.getInstance().levelRenderer.renderBuffers.bufferSource().endBatch();
         }
 
         if (this.starsEnabled) {
@@ -125,7 +130,7 @@ public class DecorationBox extends AbstractSkybox {
         GL46C.glBlendEquation(GL46C.GL_FUNC_ADD);
     }
 
-    private void renderSun(MultiBufferSource multiBufferSource, PoseStack poseStack) {
+    private void renderSun(MultiBufferSource.BufferSource multiBufferSource, PoseStack poseStack) {
         VertexConsumer vertexConsumer = multiBufferSource.getBuffer(celestial(this.sunTexture));
         int i = ARGB.white(this.alpha);
         Matrix4f matrix4f = poseStack.last().pose();

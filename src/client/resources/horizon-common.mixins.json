@@ -5,11 +5,11 @@
   "package": "com.jeff.horizon.mixin",
   "compatibilityLevel": "JAVA_17",
   "client": [
+    "MixinLevelRenderer",
     "MixinGlCommandEncoder",
-    "MixinFogRenderer",
-    "MixinGlCommandEncoder",
-    "RenderPipelinesAccessor"
-  ],
+    "RenderPipelinesAccessor",
+    "MixinFogRenderer"
+    ],
   "injectors": {
     "defaultRequire": 1
   },

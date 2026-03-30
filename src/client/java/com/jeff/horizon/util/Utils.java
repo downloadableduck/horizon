@@ -11,6 +11,7 @@ import com.jeff.horizon.api.skyboxes.Skybox;
 import com.jeff.horizon.components.RGB;
 import com.jeff.horizon.components.RangeEntry;
 import com.jeff.horizon.components.UVRange;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
@@ -112,12 +113,12 @@ public class Utils {
     }
     public static double calculateRotation(double rotationSpeed, boolean isSkyboxRotation, ClientLevel world) {
         if (rotationSpeed != 0F) {
-            double rotationFraction = dayTime / (24000.0D / rotationSpeed);
+            double rotationFraction = Minecraft.getInstance().level.getOverworldClockTime() / (24000.0D / rotationSpeed);
             double skyAngle = Mth.positiveModulo(rotationFraction, 1);
             if (isSkyboxRotation) {
                 return 360D * skyAngle;
             } else {
-                return 360D * dayTime;
+                return 360D * Minecraft.getInstance().level.getOverworldClockTime();
             }
         } else {
             return 0D;

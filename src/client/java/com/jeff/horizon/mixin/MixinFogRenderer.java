@@ -18,7 +18,7 @@ public class MixinFogRenderer {
     private static void nuit$redirectSetShaderFogColor(final Camera camera, final float partialTicks, final ClientLevel level, final int renderDistance, float darkenWorldAmount, final Vector4f original, CallbackInfo ci) {
         if (SkyboxManager.getInstance().isEnabled()) {
             darkenWorldAmount = Utils.alphaBlendFogDensity(SkyboxManager.getInstance().getActiveSkyboxes(), original.w());
-            original.add(original.x(), original.y(), original.z(), darkenWorldAmount);
+            //original.add(original.x(), original.y(), original.z(), darkenWorldAmount);
         }
     }
 }

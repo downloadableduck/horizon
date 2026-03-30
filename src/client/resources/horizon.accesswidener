@@ -10,3 +10,4 @@ accessible method net/minecraft/client/renderer/SkyRenderer renderMoon (Lnet/min
 accessible class com/mojang/blaze3d/opengl/GlCommandEncoder
 accessible method com/mojang/blaze3d/opengl/GlCommandEncoder applyPipelineState (Lcom/mojang/blaze3d/pipeline/RenderPipeline;)V
 accessible field net/minecraft/client/renderer/LevelRenderer levelRenderState Lnet/minecraft/client/renderer/state/level/LevelRenderState;
+accessible field net/minecraft/client/renderer/SkyRenderer bottomSkyBuffer Lcom/mojang/blaze3d/buffers/GpuBuffer;

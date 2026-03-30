@@ -1,5 +1,9 @@
 package com.jeff.horizon.skybox;
 
+import com.jeff.horizon.SkyboxManager;
+import com.jeff.horizon.api.skyboxes.Skybox;
+import com.jeff.horizon.skybox.decorations.DecorationBox;
+import com.mojang.blaze3d.systems.TimerQuery;
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import com.jeff.horizon.HorizonClient;
 import com.jeff.horizon.api.skyboxes.HorizonSkybox;
@@ -8,16 +12,24 @@ import com.jeff.horizon.components.Properties;
 import com.jeff.horizon.components.Weather;
 import com.jeff.horizon.util.Utils;
 import net.minecraft.client.Camera;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.item.properties.numeric.Time;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.util.Tuple;
+import net.minecraft.util.datafix.fixes.DayTimeToClockFix;
+import net.minecraft.world.attribute.EnvironmentAttributes;
+import net.minecraft.world.clock.WorldClocks;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.material.FogType;
+import net.minecraft.world.level.storage.WorldData;
+import net.minecraft.world.level.storage.loot.predicates.TimeCheck;
+import net.minecraft.world.timeline.Timeline;
 
 import java.util.Map;
 import java.util.Objects;
@@ -62,10 +74,12 @@ public abstract class AbstractSkybox implements HorizonSkybox {
      */
     @Override
     public void updateAlpha(ClientLevel level) {
-        long currentTime = 1;//level.getOverworldClockTime() % this.properties.fade().duration();
-       // System.out.println(currentTime);
+
+        long currentTime = level.getOverworldClockTime() % this.properties.fade().duration();
+
         boolean condition = this.checkConditions();
-        float fadeAlpha = 1f;
+        /**this is causing the skyboxes to render as completely black.*/
+        float fadeAlpha = 0;
         if (this.properties.fade().keyFrames().isEmpty()) {
             this.conditionAlpha = Utils.calculateConditionAlphaValue(1f, 0f, this.conditionAlpha, condition ? this.properties.transitionInDuration() : this.properties.transitionOutDuration(), condition);
         } else {
@@ -278,7 +292,7 @@ public abstract class AbstractSkybox implements HorizonSkybox {
 
     @Override
     public boolean isActive() {
-        return alpha != 1.0f;
+        return true;
     }
 
     @Override

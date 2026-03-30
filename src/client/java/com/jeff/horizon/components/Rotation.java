@@ -43,7 +43,7 @@ public record Rotation(boolean skyboxRotation, Map<Long, Quaternionf> mapping, M
     ).apply(instance, Rotation::new));
 
     public Matrix4f apply(Matrix4f matrix4f, ClientLevel level) {
-        final long currentTime = level.getGameTime() % this.duration;
+        final long currentTime = (level.getOverworldClockTime() % this.duration) / 24000;
         Quaternionf resultRot = new Quaternionf();
 
         Optional<Tuple<Long, Long>> possibleMappingKeyframes = Utils.findClosestKeyframes(this.mapping, currentTime);
