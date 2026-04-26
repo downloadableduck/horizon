@@ -1,0 +1,165 @@
+package com.jeff.horizon;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
+import com.google.gson.JsonObject;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.serialization.JsonOps;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import com.jeff.horizon.api.HorizonApi;
+import com.jeff.horizon.api.HorizonPlatformHelper;
+import com.jeff.horizon.api.skyboxes.Skybox;
+import com.jeff.horizon.components.Metadata;
+import com.jeff.horizon.skybox.DefaultHandler;
+import com.jeff.horizon.skybox.SkyboxType;
+import com.jeff.horizon.skybox.TextureRegistrar;
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SkyRenderer;
+import net.minecraft.client.renderer.texture.SimpleTexture;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
+import org.jetbrains.annotations.ApiStatus.Internal;
+import org.joml.Matrix4fStack;
+
+import java.util.*;
+
+public class SkyboxManager implements HorizonApi {
+    private static final SkyboxManager INSTANCE = new SkyboxManager();
+    private final List<Identifier> preloadedTextures = new ArrayList<>();
+    private final Map<Identifier, Skybox> skyboxMap = new Object2ObjectLinkedOpenHashMap<>();
+    /**
+     * Stores a list of permanent skyboxes
+     *
+     * @see #addPermanentSkybox(Identifier, Skybox)
+     */
+    private final Map<Identifier, Skybox> permanentSkyboxMap = new Object2ObjectLinkedOpenHashMap<>();
+    private final List<Skybox> activeSkyboxes = new LinkedList<>();
+    private Skybox currentSkybox = null;
+    private boolean enabled = true;
+
+    public static Optional<Skybox> parseSkyboxJson(Identifier Identifier, JsonObject jsonObject) {
+        Metadata metadata;
+
+        try {
+            metadata = Metadata.CODEC.decode(JsonOps.INSTANCE, jsonObject).getOrThrow().getFirst();
+        } catch (RuntimeException e) {
+            HorizonClient.getLogger().warn("Skipping invalid skybox {}", Identifier.toString(), e);
+            HorizonClient.getLogger().warn(jsonObject.toString());
+            return Optional.empty();
+        }
+
+        Optional<Holder.Reference<SkyboxType<? extends Skybox>>> optionalType = HorizonPlatformHelper.INSTANCE.getSkyboxTypeRegistry().get(metadata.type());
+        if (optionalType.isEmpty()) {
+            HorizonClient.getLogger().warn("Skipping skybox {} with unknown type {}", Identifier.toString(), metadata.type().getPath().replace('_', '-'));
+            return Optional.empty();
+        }
+
+        Holder.Reference<SkyboxType<? extends Skybox>> type = optionalType.get();
+        try {
+            return Optional.of(type.value().getCodec(metadata.schemaVersion()).decode(JsonOps.INSTANCE, jsonObject).getOrThrow().getFirst());
+        } catch (RuntimeException e) {
+            HorizonClient.getLogger().warn("Skipping invalid skybox {}", Identifier.toString(), e);
+            HorizonClient.getLogger().warn(jsonObject.toString());
+            return Optional.empty();
+        }
+    }
+
+    public static SkyboxManager getInstance() {
+        return INSTANCE;
+    }
+
+    public void addSkybox(Identifier Identifier, JsonObject jsonObject) {
+        Optional<Skybox> skybox = SkyboxManager.parseSkyboxJson(Identifier, jsonObject);
+        if (skybox.isPresent()) {
+            HorizonClient.getLogger().info("Adding skybox {}", Identifier.toString());
+            this.addSkybox(Identifier, skybox.get());
+        }
+    }
+
+    public void addSkybox(Identifier Identifier, Skybox skybox) {
+        Preconditions.checkNotNull(Identifier, "Identifier was null");
+        Preconditions.checkNotNull(skybox, "Skybox was null");
+        DefaultHandler.addConditions(skybox);
+
+        if (skybox instanceof TextureRegistrar textureRegistrar) {
+            textureRegistrar.getTexturesToRegister().forEach((theIdentifier) -> {
+                Minecraft.getInstance().getTextureManager().registerAndLoad(theIdentifier, new SimpleTexture(theIdentifier));
+                this.preloadedTextures.add(theIdentifier);
+            });
+        }
+
+        this.skyboxMap.put(Identifier, skybox);
+    }
+
+    /**
+     * Permanent skyboxes are never cleared after a resource reload. This is
+     * useful when adding skyboxes through code as resource reload listeners
+     * have no defined order of being called.
+     *
+     * @param skybox the skybox to be added to the list of permanent skyboxes
+     */
+    public void addPermanentSkybox(Identifier Identifier, Skybox skybox) {
+        Preconditions.checkNotNull(Identifier, "Identifier was null");
+        Preconditions.checkNotNull(skybox, "Skybox was null");
+        DefaultHandler.addConditions(skybox);
+        this.permanentSkyboxMap.put(Identifier, skybox);
+    }
+
+    @Internal
+    public void clearSkyboxes() {
+        DefaultHandler.clearConditionsExcept(this.permanentSkyboxMap.values());
+        this.skyboxMap.clear();
+        this.activeSkyboxes.clear();
+        this.preloadedTextures.forEach(texture -> Minecraft.getInstance().getTextureManager().release(texture));
+        this.preloadedTextures.clear();
+    }
+
+    @Internal
+    public void renderSkyboxes(SkyRenderer skyRendererAccessor, Matrix4fStack matrix4fStack, float tickDelta, Camera camera, GpuBufferSlice fogParameters, MultiBufferSource.BufferSource bufferSource) {
+        for (Skybox skybox : this.activeSkyboxes) {
+            this.currentSkybox = skybox;
+            skybox.render(skyRendererAccessor, matrix4fStack, tickDelta, camera, fogParameters, bufferSource);
+        }
+        //RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
+    }
+
+    public boolean isEnabled() {
+        return this.enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public Skybox getCurrentSkybox() {
+        return this.currentSkybox;
+    }
+
+    @Override
+    public List<Skybox> getActiveSkyboxes() {
+        return this.activeSkyboxes;
+    }
+
+    public void tick(ClientLevel level) {
+        for (Skybox skybox : Iterables.concat(this.skyboxMap.values(), this.permanentSkyboxMap.values())) {
+            skybox.tick(level);
+        }
+
+        this.activeSkyboxes.removeIf(skybox -> !skybox.isActive());
+        // Add the skyboxes to a activeSkyboxes container so that they can be ordered
+        for (Skybox skybox : Iterables.concat(this.skyboxMap.values(), this.permanentSkyboxMap.values())) {
+            if (!this.activeSkyboxes.contains(skybox) && skybox.isActive()) {
+                this.activeSkyboxes.add(skybox);
+            }
+        }
+
+        this.activeSkyboxes.sort(Comparator.comparingInt(Skybox::getLayer));
+    }
+
+    public Map<Identifier, Skybox> getSkyboxMap() {
+        return this.skyboxMap;
+    }
+}

@@ -1,0 +1,8 @@
+{
+  "category.nuit": "地平線",
+  "key.nuit.toggle": "切換 地平線",
+  "nuit.message.enabled": "地平線 已啟用！",
+  "nuit.message.disabled": "地平線 已停用！",
+  "key.nuit.toggle.debug_hud": "切換除錯 HUD",
+  "key.nuit.toggle.debug_screen": "切換除錯介面"
+}
